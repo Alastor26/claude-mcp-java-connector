@@ -30,7 +30,21 @@ public class TelemetryStarter {
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .enable(SerializationFeature.INDENT_OUTPUT);
 
-        TelemetryEvent sampleEvent = createEvent("claude-3-7-sonnet-latest", 420, 185, true);
-        System.out.println(mapper.writeValueAsString(sampleEvent));
+        String apiKey = System.getenv("ANTHROPIC_API_KEY");
+        TelemetryEvent event;
+
+        if (apiKey != null && !apiKey.isBlank()) {
+            ClaudeClient client = new ClaudeClient(apiKey);
+            event = client.sendMessageAndCaptureTelemetry(
+                    "claude-sonnet-4-6",
+                    "Reply with one word: ready.",
+                    16
+            );
+        } else {
+            System.out.println("ANTHROPIC_API_KEY not set. Running in offline demo mode...");
+            event = createEvent("claude-sonnet-4-6", 420, 185, true);
+        }
+
+        System.out.println(mapper.writeValueAsString(event));
     }
 }
